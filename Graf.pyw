@@ -5,28 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def speed(lat1, lon1, lat2, lon2, time1, time2):
-    """ Take latitude and longitude and calculate speed in km/h """
-    
-    R = 6373.0 # approximate radius of earth in km
 
-    lat1 = radians(lat1)
-    lon1 = radians(lon1)
-    lat2 = radians(lat2)
-    lon2 = radians(lon2)
-    
-    dlon = abs(lon2 - lon1)
-    dlat = abs(lat2 - lat1)
-
-    a = sin(dlat / 2)**2 + cos(lat1) * cos(lat2) * sin(dlon / 2)**2
-    c = 2 * atan2(sqrt(a), sqrt(1 - a))
-
-    distance = R * c
-    time = abs(time1 - time2)
-    try:
-       return round(3600 / time * distance, 2) 
-    except ZeroDivisionError:
-        return 0.0
 
 def distance(lat1, lon1, lat2, lon2):
 
@@ -44,7 +23,16 @@ def distance(lat1, lon1, lat2, lon2):
     c = 2 * atan2(sqrt(a), sqrt(1 - a))
 
     return R * c
- 
+
+def speed(lat1, lon1, lat2, lon2, time1, time2):
+    """ Take latitude and longitude and calculate speed in km/h """
+    dist = distance(lat1, lon1, lat2, lon2)
+    time = abs(time1 - time2)
+    try:
+       return round(3600 / time * dist, 2) 
+    except ZeroDivisionError:
+        return 0.0
+
 def gather_data():
     cond = False
     for i in date:   
@@ -130,13 +118,13 @@ def filter_len():
     len_dis = len(distance_list_plot)
 
     if len_alt > len_dis:
-        del altitude_meters_list[-(len_alt-len_dis)]
+        del altitude_meters_list[-(len_alt-len_dis) : ]
     if len_dis > len_alt:
-        del distance_list_plot[-(len_dis-len_alt)]
+        del distance_list_plot[-(len_dis-len_alt) : ]
 
     if len_pulse > 0:
         if len_pulse > len_dis:
-            del pulse_list[(-len_pulse-len_dis)]
+            del pulse_list[(-len_pulse-len_dis) : ]
 
 # open file
 tkinter.Tk().withdraw() # close tkinter window after ask the filepath
@@ -165,24 +153,24 @@ fig, host = plt.subplots() # Create graf
 
 # make altitude graf
 host3 = host.twinx()
-host3.plot(distance_list_plot, altitude_meters_list, "green")
+host3.plot(distance_list_plot, altitude_meters_list, "green", alpha=0.5, linewidth=1)
 host3.axis('off')
 
-host.plot(distance_list_plot, speed_list,  "blue") # Make graf 
+host.plot(distance_list_plot, speed_list,  "blue", alpha=0.5, linewidth=1) # Make graf 
 
 
 
 poly = np.polyfit(distance_list_plot, speed_list, 15) # graf average line
 poly_y = np.poly1d(poly)(distance_list_plot)
-host.plot(distance_list_plot, poly_y, 'black')
+host.plot(distance_list_plot, poly_y, 'blue')
 
 if len(pulse_list) > 0:
     host2 = host.twinx()
-    host2.plot(distance_list_plot, pulse_list,  "red") # Make graf 
+    host2.plot(distance_list_plot, pulse_list,  "red", alpha=0.5, linewidth=1) # Make graf 
 
     poly = np.polyfit(distance_list_plot, pulse_list, 15) # graf average line
     poly_y = np.poly1d(poly)(distance_list_plot)
-    host2.plot(distance_list_plot, poly_y, 'black')
+    host2.plot(distance_list_plot, poly_y, 'red')
 
 
 plt.subplots_adjust(left=0.05, right=0.95, top=1.0, bottom=0.1)
